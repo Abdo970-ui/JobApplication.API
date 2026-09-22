@@ -54,6 +54,7 @@ namespace JobApplication.API.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Login(LoginRequestDto request)
         {
+            // Edit
             try
             {
                 var result = await _authService.LoginAsync(request);
