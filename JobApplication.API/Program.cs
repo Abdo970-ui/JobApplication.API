@@ -7,6 +7,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+using System.Reflection;
 using System.Text;
 
 namespace JobApplication.API
@@ -40,6 +41,13 @@ namespace JobApplication.API
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
+
+            // Register MediatR
+            builder.Services.AddMediatR(cfg => {
+                cfg.RegisterServicesFromAssembly(typeof(JobService).Assembly);
+                cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
+            });
+
             // Add JWT Authentication
             var jwtKey = builder.Configuration["Jwt:Key"];
             builder.Services.AddAuthentication(options =>
@@ -65,15 +73,27 @@ namespace JobApplication.API
             builder.Services.AddAuthorization();
 
             // Add Scalar API reference
-            builder.Services.AddOpenApi();
+            //builder.Services.AddOpenApi();
+
+
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen(options =>
+            {
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                options.IncludeXmlComments(xmlPath);
+            });
+
 
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                app.MapOpenApi();
-                app.MapScalarApiReference();
+                app.UseSwagger();
+                app.UseSwaggerUI();
+                //app.MapOpenApi();
+                //app.MapScalarApiReference();
             }
 
             app.UseHttpsRedirection();
