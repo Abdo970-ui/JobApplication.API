@@ -1,18 +1,14 @@
-using Hangfire;
 using JobApplication.Application.Interfaces;
 using JobApplication.Application.Services;
 using JobApplication.Infrastructure.Prestance;
 using JobApplication.Infrastructure.Repositores;
-using JobApplication.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi;
 using Scalar.AspNetCore;
 using System.Reflection;
 using System.Text;
-using Microsoft.OpenApi;
 
 namespace JobApplication.API
 {
@@ -41,8 +37,6 @@ namespace JobApplication.API
             builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
             builder.Services.AddScoped<IRecruiterRepository, RecruiterRepository>();
             builder.Services.AddScoped<ICandidateRepository, CandidateRepository>();
-            builder.Services.AddScoped<INotificationService, EmailNotificationService>();
-            builder.Services.AddScoped<IBackgroundJobScheduler, HangfireBackgroundJobScheduler>();
             // Register Auth services
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
@@ -88,29 +82,7 @@ namespace JobApplication.API
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 options.IncludeXmlComments(xmlPath);
-
-                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-                {
-                    Name = "Authorization",
-                    Type = SecuritySchemeType.Http,
-                    Scheme = "bearer",
-                    BearerFormat = "JWT",
-                    In = ParameterLocation.Header,
-                    Description = "اكتب التوكن بس من غير كلمة Bearer"
-                });
-
-                options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
-                {
-                    [new OpenApiSecuritySchemeReference("Bearer", document)] = new List<string>()
-                });
             });
-
-            builder.Services.AddHangfire(config => config
-            .UseSimpleAssemblyNameTypeSerializer()
-            .UseRecommendedSerializerSettings()
-            .UseSqlServerStorage(builder.Configuration.GetConnectionString("HangfireConnection")));
-
-
 
 
             var app = builder.Build();
@@ -129,7 +101,6 @@ namespace JobApplication.API
             app.UseAuthentication();   // لازم قبل UseAuthorization
             app.UseAuthorization();
 
-            app.UseHangfireDashboard("/hangfire");
 
             app.MapControllers();
 

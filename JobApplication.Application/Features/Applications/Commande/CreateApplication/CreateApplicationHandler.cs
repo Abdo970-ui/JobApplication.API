@@ -10,14 +10,10 @@ namespace JobApplication.Application.Features.Applications.Commande.CreateApplic
     public class CreateApplicationHandler : IRequestHandler<CreateApplicationCommande, int>
     {
         private readonly IApplicationRepository _applicationRepo;
-        private readonly INotificationService _notificationService;
-        private readonly IBackgroundJobScheduler _backgroundJobScheduler;
 
-        public CreateApplicationHandler(IApplicationRepository applicationRepo, INotificationService notificationService, IBackgroundJobScheduler backgroundJobScheduler)
+        public CreateApplicationHandler(IApplicationRepository applicationRepo)
         {
             _applicationRepo = applicationRepo;
-            _notificationService = notificationService;
-            _backgroundJobScheduler = backgroundJobScheduler;
         }
 
         public async Task<int> Handle(CreateApplicationCommande request, CancellationToken cancellationToken)
@@ -30,10 +26,6 @@ namespace JobApplication.Application.Features.Applications.Commande.CreateApplic
             };
             await _applicationRepo.CreateApplicationAsync(application);
             await _applicationRepo.SaveChangesAsync();
-
-           //await _notificationService.NotifyReqruiter(application.Id);
-
-            _backgroundJobScheduler.Enqueu<INotificationService>(b=>b.NotifyReqruiter(application.Id));
             return application.Id;
         }
     }
