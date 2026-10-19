@@ -8,6 +8,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace JobApplication.API.Controllers
@@ -17,7 +18,7 @@ namespace JobApplication.API.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Candidate")]
+    [Authorize]
     public class ApplicatonsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -81,6 +82,7 @@ namespace JobApplication.API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Authorize(Roles = "Candidate")]
         public async Task<IActionResult> CancelApplication(int id)
         {
             //var error = await _applicationService.CancelApplicationAsync(id);
@@ -97,5 +99,12 @@ namespace JobApplication.API.Controllers
 
             return NoContent();
         }
+        [Authorize(Roles = "Recruiter")]
+        [HttpGet]
+        public async Task<IActionResult> GetAllApplications()
+        {
+            var applications =await _context.JobCandidateApplications.ToListAsync();
+            return Ok(applications);
+        }    
     }
 }
