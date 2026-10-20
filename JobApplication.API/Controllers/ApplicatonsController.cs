@@ -8,6 +8,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace JobApplication.API.Controllers
@@ -17,7 +18,7 @@ namespace JobApplication.API.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Candidate")]
+    [Authorize]
     public class ApplicatonsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -77,6 +78,7 @@ namespace JobApplication.API.Controllers
         /// <response code="204">Application cancelled successfully.</response>
         /// <response code="400">The application could not be cancelled (e.g. invalid state).</response>
         /// <response code="404">Application not found.</response>
+        [Authorize(Roles = "Candidate")]
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -97,5 +99,18 @@ namespace JobApplication.API.Controllers
 
             return NoContent();
         }
+        /// <summary>
+        /// Gets all job applications. This endpoint is restricted to users with the "Recruiter" role.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Authorize(Roles = "Recruiter")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAllApplications()
+        {
+            var applications = await _context.JobCandidateApplications.ToListAsync();
+            return Ok(applications);
+        }
+
     }
 }
